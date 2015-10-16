@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "author": "Anand Mani Sankar",
-  "license": "ISC",
+  "author": "Andrey Belik",
+  "license": "GPL",
   "dependencies": {
     "express": "^4.12.3",
+    "fitbit": "artfitdev/node-fitbit",
+    "up": "artfitdev/node-jawbone-up"
     "hiredis": "^0.2.0",
     "mocha": "^2.2.1",
-    "redis": "^0.12.1"
+    "redis": "^0.12.1",
+    "express-session": "^1.7.6",
+    "cookie-session" : "^2.0.0"
   }
 }

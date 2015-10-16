@@ -13,10 +13,20 @@ RUN apt-get update && \
 # Install nodemon
 RUN npm install -g nodemon
 
+RUN apt-get -y install git
+
+
+# VOLUME ["/src"]
+
+
+
 # Provides cached layer for node_modules
 ADD package.json /tmp/package.json
 RUN cd /tmp && npm install
-RUN mkdir -p /src && cp -a /tmp/node_modules /src/
+RUN mkdir -p /src && cp -a /tmp/node_modules /src/ 
+# COPY /node-fitbit /src/node-fitbit
+
+
 
 # Define working directory
 WORKDIR /src
@@ -24,6 +34,7 @@ ADD . /src
 
 # Expose port
 EXPOSE  8080
+
 
 # Run app using nodemon
 CMD ["nodemon", "/src/index.js"]
