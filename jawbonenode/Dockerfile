@@ -2,7 +2,7 @@
 FROM    ubuntu
 
 # File Author / Maintainer
-MAINTAINER Anand Mani Sankar
+MAINTAINER Andrey Belik
 
 # Install Node.js and other dependencies
 RUN apt-get update && \
@@ -14,6 +14,9 @@ RUN apt-get update && \
 RUN npm install -g nodemon
 
 RUN apt-get -y install git
+
+
+# VOLUME ["/src"]
 
 
 
@@ -30,7 +33,7 @@ WORKDIR /src
 ADD . /src
 
 # Expose port
-EXPOSE  8080
+EXPOSE  8082
 
 
 # Run app using nodemon

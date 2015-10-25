@@ -5,21 +5,29 @@ var express = require('express'),
     configSecret  = '8eec31295b71c172c01260bff308fc46',
     app = express(),
     session = require('express-session'),
-    Fitbit = require('fitbit');
-
-
+    Fitbit = require('fitbit'),
+    
+    redisStore = require('connect-redis')(session);
+    bodyParser = require('body-parser');
+    
 var app = express();
+
+var RedisClient = redis.createClient('6379', 'redis');
+
+app.use(session({
+    secret: 'ssshhhhh',
+    // create new redis store.
+    store: new redisStore({ host: 'redis', port: 6379, client: RedisClient,ttl :  260}),
+    saveUninitialized: false,
+    resave: false
+}));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
 
 console.log(process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_6379_TCP_PORT);
 
-// APPROACH 1: Using environment variables created by Docker
-// var client = redis.createClient(
-// 	process.env.REDIS_PORT_6379_TCP_PORT,
-//   	process.env.REDIS_PORT_6379_TCP_ADDR
-// );
-
-// APPROACH 2: Using host entries created by Docker in /etc/hosts (RECOMMENDED)
-var RedisClient = redis.createClient('6379', 'redis');
 
 
 // app.get('/', function(req, res, next) {
@@ -31,16 +39,25 @@ var RedisClient = redis.createClient('6379', 'redis');
 //
  
 //app.use(express.cookieParser());
-app.use(session({secret: 'hekdhthigib', resave: false, saveUninitialized: true}));
+//app
+    //.use( session({secret: 'hekdhthigib', resave: false, saveUninitialized: true}));
 
  
 // OAuth flow 
 app.get('/', function (req, res) {
 
-  //we need to check what token do we have
-  //if we have FitBit Token
+    if(req.session.key) {
+        // if email key is sent redirect.
+      res.redirect('/admin/fitbit');
+    } else {
+        // else go to home page.
+      res.redirect('/stats');
+    }
+  
+});
 
-  //if we have Up Token
+
+app.get("/fitbit/login", function (req, res) {
 
   // Create an API client and start authentication via OAuth 
   var client = new Fitbit(configKey, configSecret);
@@ -66,6 +83,7 @@ app.get('/', function (req, res) {
     res.redirect(client.authorizeUrl(requesttoken));
   });
 });
+
  
 // On return from the authorization 
 app.get('/oauth/fitbit/callback', function (req, res) {
