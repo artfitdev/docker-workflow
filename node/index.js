@@ -6,56 +6,41 @@ var express = require('express'),
     app = express(),
     session = require('express-session'),
     Fitbit = require('fitbit'),
-    
+    cookieParser = require('cookie-parser'),
     redisStore = require('connect-redis')(session);
-    bodyParser = require('body-parser');
+    
     
 var app = express();
 
 var RedisClient = redis.createClient('6379', 'redis');
 
+//app.use(bodyParser.json());
+//app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 app.use(session({
-    secret: 'ssshhhhh',
+    secret: 'ssshhhhhsomethingverylong',
     // create new redis store.
     store: new redisStore({ host: 'redis', port: 6379, client: RedisClient,ttl :  260}),
-    saveUninitialized: false,
-    resave: false
+    saveUninitialized: true,
+    resave: true
 }));
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-
-
 console.log(process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_6379_TCP_PORT);
-
-
-
-// app.get('/', function(req, res, next) {
-//   client.incr('counter', function(err, counter) {
-//     if(err) return next(err);
-//     res.send('This page has been viewed ' + counter + ' times!');
-//   });
-// });
-//
- 
-//app.use(express.cookieParser());
-//app
-    //.use( session({secret: 'hekdhthigib', resave: false, saveUninitialized: true}));
-
  
 // OAuth flow 
-app.get('/', function (req, res) {
+app.get('/fitbit', function (req, res) {
 
-    if(req.session.key) {
-        // if email key is sent redirect.
-      res.redirect('/admin/fitbit');
+    if(req.session.accessToken) {
+        // if email key is sent redirect.      
+      res.redirect('/stats');      
     } else {
         // else go to home page.
-      res.redirect('/stats');
+      req.session.somevalue="Somevalue"
+      res.redirect('/fitbit/login');
+
     }
   
 });
-
 
 app.get("/fitbit/login", function (req, res) {
 
@@ -67,102 +52,84 @@ app.get("/fitbit/login", function (req, res) {
       // Take action  
       return;
     }
-  
-    RedisClient.hmset('OauthToken', {
-      'RequestToken': requesttoken.toString(), 
-      'RequestTokenSecret': requesttokenSecret.toString()
-      }
-    );    
+
+    req.session.RequestToken = requesttoken.toString();
+    req.session.RequestTokenSecret = requesttokenSecret.toString();
+    
+    
 
     console.log('RequestToken: ' + requesttoken) 
+    console.log('Session: ' + JSON.stringify( req.session) )
 
-    // req.session.oauth = {  
-    //     requestToken: token
-    //   , requestTokenSecret: tokenSecret
-    // };
     res.redirect(client.authorizeUrl(requesttoken));
   });
 });
 
  
 // On return from the authorization 
-app.get('/oauth/fitbit/callback', function (req, res) {
+app.get('/fitbit/oauth/callback', function (req, res) {
 
   var verifier = req.query.oauth_verifier    
     , fitbitclient = new Fitbit(configKey, configSecret);
   
   var oauthSettings;
-  RedisClient.hgetall('OauthToken', function (err, oauthSettings){
 
+    console.log('oauthSettings: ' + req.session.RequestToken + '\n' + req.session.RequestTokenSecret) 
+    console.log('\nCallback Session: ' + JSON.stringify( req.session))
 
-    console.log('oauthSettings: ' + oauthSettings['RequestToken'] + '\n' + oauthSettings) 
-     
     // Request an access token 
     fitbitclient.getAccessToken(
-        oauthSettings['RequestToken']
-      , oauthSettings['RequestTokenSecret']
-      , verifier
-      , function (err, token, secret) {
+      req.session.RequestToken,
+      req.session.RequestTokenSecret,
+      verifier,
+      function (err, token, secret) {
           if (err) {
             console.log('ERROR: ' + err);
             return;
           }
 
-          console.log('Access Token ' + token);
+          console.log('Access Token ' + token+ '\n' + 'Secrete' + secret);
 
-          RedisClient.hmset('OauthToken', {
-            'accessToken': token,
-            'accessTokenSecret': secret
-          }, function (err, reply){
-            if (err) {
-            // Take action 
-            return;
-          }
-          });
+          req.session.accessToken = token
+          req.session.accessTokenSecret = secret
 
-   
-          res.redirect('/stats');
+          console.log('\nRedirecting to stats ' );
+          res.redirect('/fitbit/stats');
         }
     );
-  });
+//  });
 });
  
 // Display some stats 
-app.get('/stats', function (req, res) {
+app.get('/fitbit/stats', function (req, res) {
 
-  
-  RedisClient.hgetall('OauthToken', function(err, tokenHash) {
-    var _accessToken = tokenHash['accessToken'],
-    _accessTokenSecret = tokenHash ['accessTokenSecret']
-
-    console.log(tokenHash);
-    client = new Fitbit(
-        configKey
-      , configSecret
-      , { // Now set with access tokens 
-            accessToken: _accessToken
-          , accessTokenSecret: _accessTokenSecret
-          , unitMeasure: 'en_GB'
-        }
-    );
-   
-    // Fetch todays activities 
-    client.getActivities(function (err, activities) {
-      if (err) {
-        // Take action 
-        return;
+  client = new Fitbit(
+      configKey
+    , configSecret
+    , { // Now set with access tokens 
+          accessToken: req.session.accessToken
+        , accessTokenSecret: req.session.accessTokenSecret
+        , unitMeasure: 'en_GB'
       }
-   
-      // `activities` is a Resource model 
-      var reponse = [
-        {name: "Total Steps", value: activities.steps()},
-        {name: "Total Floors", value: activities.floors()},
-        //{name: "Total Activity Calories", value: activities.activityCalories()}
-      ]
+  );
+ 
+  // Fetch todays activities 
+  client.getActivities(function (err, activities) {
+    if (err) {
+      // Take action 
+      return;
+    }
+ 
+    // `activities` is a Resource model 
+    var reponse = [
+      {name: "Total Steps", value: activities.steps()},
+      {name: "Total Floors", value: activities.floors()},
+      //{name: "Total Activity Calories", value: activities.activityCalories()}
+    ]
 
-      res.json(reponse);
-    });
+    res.json(reponse);
   });
+
 });
 
 http.createServer(app).listen(process.env.PORT || 8080, function() {
