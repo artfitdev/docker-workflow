@@ -4,6 +4,7 @@ nginx:
         - node1:node1
         - jawbonenode1:jawbonenode1
         - jawboneoauth:jawboneoauth
+        - artfitbe1:artfitbe1
         #- node2:node2
         #- node3:node3
     ports:
@@ -11,12 +12,24 @@ nginx:
         - "443:443"
     extra_hosts: 
         - "www.fotolite.net:127.0.0.1"
+    volumes:
+        - /nginx_log:/var/log/nginx/log
+        - ./nginx/web:/src/www:ro
 node1:
     build: ./node
     links:
         - redis
     ports:
         - "8080"
+    extra_hosts: 
+        - "www.fotolite.net:127.0.0.1"
+artfitbe1:
+    build: "./artfit-be"
+    links:
+        - redis
+        - mongodb
+    ports:
+        - "8082"
     extra_hosts: 
         - "www.fotolite.net:127.0.0.1"
 jawbonenode1:
@@ -27,11 +40,13 @@ jawbonenode1:
         - "8081"
     extra_hosts: 
         - "www.fotolite.net:127.0.0.1"
+    log_driver: "none"
 
 jawboneoauth:
     build: ./jawboneoauth
     links:
         - redis
+        - mongodb
     ports:
         - "8082"
     extra_hosts: 
@@ -43,4 +58,12 @@ redis:
         - "6379"
     volumes:
         - /redis_data
+    log_driver: "none"
+
+mongodb:
+    build: ./mongodb
+    ports:
+        - "27017"
+    volumes:
+        - /mongo_data:/data/db
     log_driver: "none"

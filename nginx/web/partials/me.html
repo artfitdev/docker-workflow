@@ -1,0 +1,36 @@
+<div class="row" >
+    <div class="col-lg-12" data-ng-controller="MeCtrl">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <strong>Your Details</strong>
+            </div>
+            <div class="panel-body">
+                <p>{{myDetails.data.email}}</p>
+                <p>{{myDetails.data.password}}</p>
+            </div>
+        </div>
+    </div> 
+
+    <div class="col-lg-12" data-ng-controller="JawboneCtrl">       
+        <div class="panel-heading">
+                <strong>Registered Trackers</strong>
+        </div>
+        <div class="panel-body" data-ng-controller="JawboneCtrl">            
+            <form ng-submit="addJawbone()" ng-hide ="jawbonetracker.type">
+                <p>Add JawBone tracker: <input type="submit" value="Add"/> </p>
+            </form>
+            <div ng-show ="jawbonetracker.type"> <div>JawBone Tracker is registered </div>
+                <div>Tracker Name: {{jawbonetracker.trackerName}}</div>
+            </div>
+
+        </div>
+    
+        <div class="panel-body" data-ng-controller="FitBitCtrl">            
+            <form ng-submit="addFitBit()">
+                <p>Add FitBit: <input type="submit" value="Add"/> </p>
+            </form>
+        </div>
+
+    </div>
+
+</div>

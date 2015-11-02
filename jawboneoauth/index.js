@@ -1,12 +1,11 @@
 var express = require('express'),
   app = express(),
-  ejs = require('ejs'),
   https = require('https'),
   fs = require('fs'),
-//  bodyParser = require('body-parser'),
   passport = require('passport'),
   JawboneStrategy = require('passport-oauth').OAuth2Strategy,
-  port = 8081,
+  port = 8081,  
+  mongoose   = require("mongoose"),
 
   jawboneAuth = {
        clientID: 'PO1vlJWHWPI',
@@ -18,38 +17,67 @@ var express = require('express'),
   sslOptions = {
     key: fs.readFileSync('./server.key'),
     cert: fs.readFileSync('./server.crt')
-  };
+  },
+  cookiesParser = require ( "cookie-parser" ),
+  User     = require('./models/User');
+
+
+  mongoose.connect("mongodb://mongodb:27017");
 
 //  app.use(bodyParser.json());
 
   app.use(express.static(__dirname + '/public'));
+  app.use(cookiesParser());
 
-  app.set('view engine', 'ejs');
-  app.set('views', __dirname + '/views');
 
 // ----- Passport set up ----- //
 app.use(passport.initialize());
 
 app.get('/jawbone/login', 
+  ensureAuthorized,
   passport.authorize('jawbone', {
     scope: ['basic_read','sleep_read'],
     failureRedirect: '/'
   })
 );
 
-app.get('/jawbone/oauth/callback',
+app.get('/jawbone/oauth/callback',ensureAuthorized,
   passport.authorize('jawbone', {
-      scope: ['basic_read','sleep_read'],
-      failureRedirect: '/'
-    }), function(req, res) {
-      res.render('userdata', req.account);
-    }
+        scope: ['basic_read','sleep_read'],
+        failureRedirect: '/'
+      }), function(req, res) {
+        res.redirect('/#/me');
+      }
+  
 );
 
 app.get('/jawbone/sleepdata', function(req, res) {
 
-    res.render('userdata', req.account);
+    console.log(' Hit /jawbone/sleepdata');
 
+    User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
+        if (err) {
+            return done(err, null, console.log('Error with Mongo'));
+        } else {
+          console.log('DEBUG: ', tracker)
+          if (usertracker) {
+              var options = {
+                access_token: usertracker.trackers[0].oauthtoken,
+                client_id: jawboneAuth.clientID,
+                client_secret: jawboneAuth.clientSecret
+              },
+              up = require('jawbone-up')(options);
+
+              up.sleeps.get({}, function(err, body) {
+                  if (err) {
+                    console.log('Error receiving Jawbone UP data');
+                  } else {
+                    res.json = JSON.parse(body).data;
+                  }
+              });
+          }
+        }
+      })
 });
 
 app.get('/jawbone/logout', function(req, res) {
@@ -58,7 +86,9 @@ app.get('/jawbone/logout', function(req, res) {
 });
 
 app.get('/jawbone/', function(req, res) {
-  res.render('index');
+  
+    console.log(' Hit /jawbone/');
+
 });
 
 passport.use('jawbone', new JawboneStrategy({
@@ -66,37 +96,103 @@ passport.use('jawbone', new JawboneStrategy({
   clientSecret: jawboneAuth.clientSecret,
   authorizationURL: jawboneAuth.authorizationURL,
   tokenURL: jawboneAuth.tokenURL,
-  callbackURL: jawboneAuth.callbackURL
-}, function(token, refreshToken, profile, done) {
+  callbackURL: jawboneAuth.callbackURL,
+  passReqToCallback : true
+}, function(req, token, refreshToken, profile, done) {
+
+  // we need to record this token
+  
+  User.findOne({token: req.token}, function(err, user) {
+      if (err) {
+        return done(err, null, console.log('Error with Mongo'));
+      } else {
+          if (user) {
+            // user was found
+            console.log('DEBUG ', user);
+            
+            User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, tracker){
+              if (err) {
+                  return done(err, null, console.log('Error with Mongo'));
+              } else {
+                console.log('DEBUG: ', tracker)
+                if (tracker) {
+
+                  //found tracker lets udpate
+                  tracker.type = 'jawbone';
+
+                  tracker.name='Name';
+                  tracker.oauthtoken = token;
+                  tracker.oauthrefreshtoken = refreshToken;
+                  tracker.save(function (err) {
+                    if (err) {
+                      console.log('new tracker record failed' + err); 
+                    }
+                  });
+
+                }
+                else
+                {
+                  //need to add new tracker
+                  user.trackers.push(
+                    {type: 'jawbone', name: 'jawbone', oauthtoken: token, oauthrefreshtoken: refreshToken});
+                  user.save(function (err) {
+                    if (err) {
+                      console.log('user.trackers.push failed ' + err);
+                    }
+                  });
+                }
+              }
+            });
+
+          }
+          else
+          {
+            // user was not found 
+            return done(err, options, console.log('Error finding user, broken JWT token maybe'));
+
+          }
+      }
+  }  );
+
+
+
+  req.OAuth2Token = token;
+  req.OAuth2RefreshToken = refreshToken;
+
   var options = {
       access_token: token,
       client_id: jawboneAuth.clientID,
       client_secret: jawboneAuth.clientSecret
-    },
-    up = require('jawbone-up')(options);
+    }    
 
-  up.sleeps.get({}, function(err, body) {
-      if (err) {
-        console.log('Error receiving Jawbone UP data');
-      } else {
-        var jawboneData = JSON.parse(body).data;
+    return done(null, options, console.log('Jawbone UP data ready to be displayed.'));
+  }
+));
 
-          for (var i = 0; i < jawboneData.items.length; i++) {
-            var date = jawboneData.items[i].date.toString(),
-              year = date.slice(0,4),
-              month = date.slice(4,6),
-              day = date.slice(6,8);
-
-
-            jawboneData.items[i].date = day + '/' + month + '/' + year;
-            jawboneData.items[i].title = jawboneData.items[i].title.replace('for ', '');
-          }
-
-      return done(null, jawboneData, console.log('Jawbone UP data ready to be displayed.'));
-      }
-    });
-}));
 
 var secureServer = https.createServer(sslOptions, app).listen(port, function(){
     console.log('UP server listening on ' + port);
 });
+
+function ensureAuthorized(req, res, next) {
+    var bearerToken;
+
+    var bearerHeader = req.headers["authorization"];
+    if (typeof bearerHeader !== 'undefined') {
+        var bearer = bearerHeader.split(" ");
+        bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+    }
+    else if (typeof req.cookies.JWT_TOKEN !== 'undefined')
+    {
+      var bearer = req.cookies.JWT_TOKEN;
+      bearerToken = bearer;
+      req.token = bearerToken;
+      next();
+    }
+    else {
+        console.log ('User unauthorized')
+        res.send(403);
+    }
+}

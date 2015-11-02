@@ -1,19 +1,19 @@
 
 {
-  "name": "JawboneUpNode",
+  "name": "JawboneUpOAuth",
   "version": "0.0.1",
   "description": "Pull in Jawbone data",
   "main": "index.js",
   "author": "",
   "license": "GPL",
   "dependencies": {
-    "ejs": "^2.3.1",
     "express": "^4.12.3",
     "fs": "0.0.2",
     "https": "^1.0.0",
-    "jawbone-up": "^0.1.2",
+    "jawbone-up": "../../node-jawbone-up",
     "passport": "^0.2.1",
-    "redis": "^0.12.1",
-    "passport-oauth": "^1.0.0"
+    "passport-oauth": "^1.0.0",
+    "cookie-parser": "^1.x",
+    "mongoose": "4.2.x"
   }
 }
