@@ -5,8 +5,7 @@ var express = require('express'),
   passport = require('passport'),
   JawboneStrategy = require('passport-oauth').OAuth2Strategy,
   port = 8081,  
-  mongoose   = require("mongoose"),
-
+  
   jawboneAuth = {
        clientID: 'PO1vlJWHWPI',
        clientSecret: 'd9650ce5b08152caac453065d3ad7751b4ecae09',
@@ -21,7 +20,7 @@ var express = require('express'),
   cookiesParser = require ( "cookie-parser" ),
   User     = require('./models/User');
 
-
+  var mongoose   = require("mongoose");
   mongoose.connect("mongodb://mongodb:27017");
 
 //  app.use(bodyParser.json());
@@ -36,7 +35,7 @@ app.use(passport.initialize());
 app.get('/jawbone/login', 
   ensureAuthorized,
   passport.authorize('jawbone', {
-    scope: ['basic_read','sleep_read'],
+    scope: ['basic_read','sleep_read', 'extended_read', 'move_read', 'meal_read', 'weight_read', 'generic_event_read', 'heartrate_read', 'mood_read', 'location_read'],
     failureRedirect: '/'
   })
 );
@@ -51,34 +50,6 @@ app.get('/jawbone/oauth/callback',ensureAuthorized,
   
 );
 
-app.get('/jawbone/sleepdata', function(req, res) {
-
-    console.log(' Hit /jawbone/sleepdata');
-
-    User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
-        if (err) {
-            return done(err, null, console.log('Error with Mongo'));
-        } else {
-          console.log('DEBUG: ', tracker)
-          if (usertracker) {
-              var options = {
-                access_token: usertracker.trackers[0].oauthtoken,
-                client_id: jawboneAuth.clientID,
-                client_secret: jawboneAuth.clientSecret
-              },
-              up = require('jawbone-up')(options);
-
-              up.sleeps.get({}, function(err, body) {
-                  if (err) {
-                    console.log('Error receiving Jawbone UP data');
-                  } else {
-                    res.json = JSON.parse(body).data;
-                  }
-              });
-          }
-        }
-      })
-});
 
 app.get('/jawbone/logout', function(req, res) {
   req.logout();

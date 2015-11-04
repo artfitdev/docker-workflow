@@ -1,9 +1,9 @@
 var mongoose    = require('mongoose');
 var Schema      = mongoose.Schema;
+	
 var Tracker     = require('./tracker');
 
-var UserSchema   = new Schema({
-	_id: Schema.ObjectId,
+var UserSchema   = new Schema({	
     email: String,
     password: String,
     token: String,

@@ -11,7 +11,7 @@ RUN apt-get update && \
     apt-get -y install python build-essential nodejs
 
 # Install nodemon
-RUN npm install -g nodemon
+RUN npm install -g nodemon@latest
 
 RUN apt-get -y install git
 
@@ -21,19 +21,20 @@ RUN apt-get -y install git
 
 
 # Provides cached layer for node_modules
-ADD package.json /tmp/package.json
-RUN cd /tmp && npm install
-RUN mkdir -p /src && cp -a /tmp/node_modules /src/ 
+# ADD package.json /tmp/package.json
 
 
-
+# RUN cd /tmp && npm install
+# RUN mkdir -p /src && cp -a /tmp/node_modules /src/ 
+COPY node_modules /src/
+COPY index.js /src/
 
 # Define working directory
 WORKDIR /src
 ADD . /src
 
 # Expose port
-EXPOSE  8082
+EXPOSE  8083
 
 
 # Run app using nodemon

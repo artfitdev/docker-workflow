@@ -26,8 +26,8 @@ angular.module('ArtFitAngular', [
             controller: 'HomeCtrl'
         }).
         when('/stats', {
-            templateUrl: 'partials/me.html',
-            controller: 'HomeCtrl'
+            templateUrl: 'partials/stats.html',
+            controller: 'StatsCtrl'
         }).
         otherwise({
             redirectTo: '/'
@@ -38,8 +38,11 @@ angular.module('ArtFitAngular', [
                 'request': function (config) {
                     config.headers = config.headers || {};
                     if ($window.sessionStorage.token) {
-                        config.headers.Authorization = 'Bearer ' + $window.sessionStorage.token;
+                        config.headers.Authorization = 'Bearer ' + $window.sessionStorage.token; 
                     }
+                    config.headers['Access-Control-Allow-Origin'] = '*';
+                    config.headers['Access-Control-Allow-Methods'] = 'GET';
+
                     return config;
                 },
                 'responseError': function(response) {

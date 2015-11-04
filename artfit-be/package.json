@@ -7,7 +7,9 @@
         "morgan": "latest",
         "mongoose": "4.2.x",
         "express-jwt": "3.1.0",
-        "jsonwebtoken": "5.4.0"
+        "jsonwebtoken": "5.4.0",
+        "request": "latest",
+        "jawbone-up": "../../node-jawbone-up"
     },
     "engines": {
         "node": ">=0.10.0"

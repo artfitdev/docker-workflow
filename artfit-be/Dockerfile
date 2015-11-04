@@ -17,9 +17,12 @@ RUN apt-get -y install git
 
 
 # Provides cached layer for node_modules
-ADD package.json /tmp/package.json
-RUN cd /tmp && npm install
-RUN mkdir -p /src && cp -a /tmp/node_modules /src/ 
+# ADD package.json /tmp/package.json
+
+
+# RUN cd /tmp && npm install
+# RUN mkdir -p /src && cp -a /tmp/node_modules /src/ 
+COPY node_modules /src/
 
 
 
