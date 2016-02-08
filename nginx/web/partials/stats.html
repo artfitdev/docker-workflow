@@ -1,25 +1,95 @@
-<div class="row" >
-    <div class="col-lg-12" data-ng-controller="StatsCtrl">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <strong>Your Details</strong>
+<md-content ng-controller= "StatsCtrl" flow="column">
+<md-card> 
+    <md-card-header><md-card-header-text>Your Details</md-card-header-text></md-card-header>
+    <md-card-title><md-card-title-text>Moves</md-card-title-text></md-card-title>
+    <md-card-content ng-repeat="item in moves.items" >
+        <strong>{{item.title}}</strong> <span>{{item.type}}</span>
+        <span>{{item.time_updated * 1000 | date:'dd-MM-yyyy HH:mm'}}</span>
+        <span>{{item.time_created * 1000 | date:'dd-MM-yyyy HH:mm'}}</span>
+        <span>{{item.time_completed * 1000 | date:'dd-MM-yyyy HH:mm'}}</span>
+        <div layout="column">
+            <div layout="row">
+                <span>Active Time: {{item.details.active_time/60}} sec</span>
+                <span>Time Zone: {{item.details.tzs}}</span>
+                <span>{{item.details.distance}}</span>
             </div>
-            <div class="panel-body">
+            <div layout="row">                
+                <span>{{item.details.bmr_day}}</span>
+                <span>{{item.details.bmr}}</span>
+            </div>
+            <md-grid-list md-cols="5" md-gutter="1em" md-row-height="4:3">
+                <md-grid-tile>{{item.details.wo_count}}</md-grid-tile>
+                    <md-grid-tile>{{item.details.wo_calories}}</md-grid-tile>
+                    <md-grid-tile>{{item.details.wo_longest}}</md-grid-tile>
+                    <md-grid-tile>{{item.details.bg_calories}}</md-grid-tile>
+                    <md-grid-tile>{{item.details.wo_time}}</md-grid-tile>
+                    <md-grid-tile>{{item.details.wo_active_time}}</md-grid-tile>
+                </md-grid-tile>
+            </md-grid-list>
+            <div layout="row">                
+                <span>{{item.details.sunrise}}</span>
+                <span>{{item.details.sunset}}</span>
+                <span>{{item.details.tz}}</span>
+            </div>
+            <div layout="row">                
+                <span>{{item.details.longest_active}}</span>
+                <span>{{item.details.longest_idle}}</span>
+            </div>
+            <div layout="row">                
+                <span>{{item.details.calories}}</span>
+                <span>{{item.details.km}}</span>
+                <span>{{item.details.series_ids}}</span>
+                <span>{{item.details.steps}}</span>
+                <span>{{item.details.inactive_time}}</span>
+            </div>
+            <div layout="row">                
+                <span>{{item.details.hourly_totals}}</span>
             </div>
         </div>
-    </div> 
+        <div ng-repeat="(key, detail) in item.details">
+            {{key}}: {{detail}}            
+        </div>
+        
+    </md-card-content>
+</md-card>
+<div class="row" >
 
-    <div class="col-lg-12">       
+
+    <div class="panel panel-primary">       
         <div class="panel-heading">
-                <strong>Statistics</strong>
+                <strong>Sleep</strong>
         </div>
         <div class="panel-body">                    
-            <div ng-repeat="item in data.items">
+            <div ng-repeat="item in sleep.items">
+                <p>{{item.title}} </p>
+                <div>Time: {{item.time_completed * 1000 | date:'dd-MM-yyyy HH:mm'}} 
+                    Created at: {{item.time_created * 1000 | date:'dd-MM-yyyy HH:mm'}}
+                    Updated at:  {{item.time_updated * 1000 | date:'dd-MM-yyyy HH:mm'}}</div>   
+                <p>{{item.details}}</p>
+            </div>            
+        </div>
+    </div>
+    <div class="panel panel-primary">       
+        <div class="panel-heading">
+                <strong>Body</strong>
+        </div>
+        <div class="panel-body">
+            <div ng-repeat="item in events_body.items">
                 {{item}}
             </div>
         </div>
-    
+    </div>
+    <div class="panel panel-primary">       
+        <div class="panel-heading">
+                <strong>Workouts</strong>
+        </div>
+        <div class="panel-body">
+            <div ng-repeat="item in workouts.items">
+                {{item}}
+            </div>
+        </div>
 
     </div>
 
 </div>
+</md-content>

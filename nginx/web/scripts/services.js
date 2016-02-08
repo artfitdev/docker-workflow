@@ -3,9 +3,6 @@
 angular.module('ArtFitAngular')
     .factory('Main', ['$http', '$window', function($http, $window){
         var baseUrl = "https://www.fotolite.net";
-        function changeUser(user) {
-            angular.extend(currentUser, user);
-        }
 
         function urlBase64Decode(str) {
             var output = str.replace('-', '+').replace('_', '/');
@@ -38,7 +35,8 @@ angular.module('ArtFitAngular')
 
         return {
             save: function(data, success, error) {
-                $http.post(baseUrl + '/api/signin', data).success(success).error(error)
+                console.log('/api/signup', data)
+                $http.post(baseUrl + '/api/signup', data).success(success).error(error)
             },
             signin: function(data, success, error) {
                 $http.post(baseUrl + '/api/authenticate', data).success(success).error(error)
@@ -47,8 +45,8 @@ angular.module('ArtFitAngular')
                 $http.get(baseUrl + '/api/me').success(success).error(error)
             },
             logout: function(success) {
-                changeUser({});
                 delete $window.sessionStorage.token;
+                delete $window.sessionStorage.UserName;
                 success();
             }
         };

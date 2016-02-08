@@ -42,7 +42,7 @@ app.get('/jawbone/login',
 
 app.get('/jawbone/oauth/callback',ensureAuthorized,
   passport.authorize('jawbone', {
-        scope: ['basic_read','sleep_read'],
+        scope: ['basic_read','sleep_read', 'extended_read', 'move_read', 'meal_read', 'weight_read', 'generic_event_read', 'heartrate_read', 'mood_read', 'location_read'],
         failureRedirect: '/'
       }), function(req, res) {
         res.redirect('/#/me');
@@ -89,11 +89,12 @@ passport.use('jawbone', new JawboneStrategy({
                 if (tracker) {
 
                   //found tracker lets udpate
-                  tracker.type = 'jawbone';
+                  tracker.trackers[0].type = 'jawbone';
 
-                  tracker.name='Name';
-                  tracker.oauthtoken = token;
-                  tracker.oauthrefreshtoken = refreshToken;
+                  tracker.trackers[0].name='Name';
+                  tracker.trackers[0].oauthtoken = token;
+                  tracker.trackers[0].oauthrefreshtoken = refreshToken;
+                  console.log('UPDATE');
                   tracker.save(function (err) {
                     if (err) {
                       console.log('new tracker record failed' + err); 

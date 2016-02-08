@@ -8,6 +8,7 @@ MAINTAINER Andrey Belik
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY server.key /etc/nginx/
 COPY server.crt /etc/nginx/
+COPY mime.types /etc/nginx/
 
 # RUN mkdir -p /src/www
 

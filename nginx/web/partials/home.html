@@ -1,20 +1,14 @@
-<div class="row">
-    <div class="col-lg-12">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <strong>ArtFit: Home of smart tranining</strong>
+<section class="page-home" ng-controller= "HomeCtrl">
+
+    <div class="home-header cover-1" >
+        <div class="home-top">
+            <div class="home-title">
+                <h1>ArtFit:</h1>
+                <h1>Первый в Мире Фитнес навигатор</h1>                
             </div>
-            <div class="panel-body">
-                <p>ARTFIT:</p>
-            </div>
-        </div>
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <strong>Debug Info</strong>
-            </div>
-            <div class="panel-body">
-                <p>Token : {{token}}</p>
-            </div>
+            <button id="RegisterButton" class="btn registerbutton "  ng-click="register()" ng-show="!isLoggedIn()">                
+                Зарегистрироваться
+            </button>
         </div>
     </div>
-</div>
+</section>

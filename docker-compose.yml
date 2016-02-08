@@ -51,7 +51,7 @@ jawboneoauth:
         - "8082"
     extra_hosts: 
         - "www.fotolite.net:127.0.0.1"
-    log_driver: "none"
+
 
 redis:
     image: redis

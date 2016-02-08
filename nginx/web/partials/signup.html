@@ -1,30 +1,78 @@
-<div class="row">
-    <div class="col-lg-12">
-    <div class="panel panel-primary">
-            <div class="panel-heading">
-                <strong>Signup</strong>
-            </div>
-            <div class="panel-body">
-                <form class="form-horizontal" role="form" ng-submit="signup()">
-                    <div class="form-group">
-                        <label for="email" class="col-sm-2 control-label">Email</label>
-                        <div class="col-sm-10">
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" ng-model="email">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="password" class="col-sm-2 control-label">Password</label>
-                        <div class="col-sm-10">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" ng-model="password">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" class="btn btn-default">Sign up</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+
+<md-content layout="column" flex id="content" >
+  
+
+  <form name="regForm" class="user-form ng-pristine ng-invalid ng-invalid-required" ng-submit="signup()" ng-controller="AuthCtrl">
+  <div layout="row" layout-align="center center" layout-fill>
+
+    <md-whiteframe class="md-whiteframe-z1" layout="column" flex="40" layout-padding>
+        <h2>Регистрация нового пользователя</h2>
+        <md-input-container>
+          
+            <input type="text" name="username" id="username" ng-model="username" ng-required="true" ng-minlength="3" ng-maxlength="64" ng-pattern="/[0-9A-Za-z]/" ng-no-html5-validate-msg="" placeholder="Имя" autofocus="" class="ng-pristine ng-invalid ng-invalid-required ng-valid-maxlength ng-valid-minlength ng-valid-pattern" required="required">
+
+            <span id="qa_name_error_message" ng-show="regForm.username.$dirty">
+              <span ng-show="regForm.username.$error.minlength" class="ng-hide">
+                Имя пользователя должно быть не короче 3 символов
+              </span>
+              <span ng-show="regForm.username.$error.required && !regForm.username.$viewValue" class="">
+                Пожалуйста, введите значение
+              </span>
+              <span ng-show="regForm.username.$error.maxlength" class="ng-hide">
+                Имя пользователя должно быть не длиннее 64 символов
+              </span>
+              <span ng-show="regForm.username.$error.pattern" class="ng-hide">
+                Пожалуйста, введите имя, используя только буквы и цифры
+              </span>
+            </span>
+          
+        </md-input-container>
+        <md-input-container>
+            <input type="email" name="email" id="qa_email" ng-model="regInfo.email" ng-change="resetExistsValidation()" ng-required="true" ng-no-html5-validate-msg="" placeholder="Email" required="required">
+
+            <span id="qa_email_error_message" ng-show="regForm.email.$dirty">
+              <span ng-show="regForm.email.$error.required &&
+                                      !regForm.email.$viewValue" class="">
+                Пожалуйста, введите значение
+              </span>
+              <span ng-show="regForm.email.$error.email" class="ng-hide">
+                Указанный почтовый адрес некорректен. Пожалуйста, укажите корректное значение
+              </span>
+              <span ng-show="regForm.email.$error.alreadyExists" class="ng-hide">
+                Пользователь с таким почтовым адресом уже существует
+              </span>
+            </span>
+        </md-input-container>
+        <md-input-container>
+            <input type="password" name="password" data-bind="password" ng-model="regInfo.password" ng-required="true" ng-minlength="6" ng-no-html5-validate-msg="" ng-trim="false" placeholder="Пароль"  required="required">
+
+            <span class="error-message ng-hide" id="qa_password_error_message" ng-show="regForm.password.$dirty">
+              <span ng-show="regForm.password.$error.required " class="">
+                Пожалуйста, введите корректное значение
+              </span>
+              <span ng-show="regForm.password.$error.minlength &&
+                                       !regForm.password.$error.required" class="ng-hide">
+                Длина пароля должна быть не менее 6 символов
+              </span>
+              <span ng-show="!regForm.password.$error.minlength && regForm.repeatPassword.$error.matches" class="ng-hide">
+                Пароли не совпадают
+              </span>
+            </span>
+        </md-input-container>
+        <md-input-container>
+          <md-switch ng-model="data.cb1" aria-label="Switch 1">
+            {{ data.cb1 }} Уведомлять меня о специальных предложениях и акциях ArtFit
+          </md-switch>
+
+        </md-input-container>
+        <md-input-container>
+        <md-button id="qa_registerButton" class="md-raised" flex="50" flex-sm="100"  type="submit" >Зарегистрироваться</md-button>
+
+      </md-input-container>
+      
+
+  </div>    
+
+
+    </form>
+<md-content>

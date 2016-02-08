@@ -4,7 +4,8 @@ angular.module('ArtFitAngular', [
     'ngStorage',
     'ngRoute',
     'angular-loading-bar',
-    'ngCookies'
+    'ngCookies',
+    'ngMaterial'
 ])
 .config(['$routeProvider', '$httpProvider', function ($routeProvider, $httpProvider) {
 
@@ -15,11 +16,11 @@ angular.module('ArtFitAngular', [
         }).
         when('/signin', {
             templateUrl: 'partials/signin.html',
-            controller: 'HomeCtrl'
+            controller: 'AuthCtrl'
         }).
         when('/signup', {
             templateUrl: 'partials/signup.html',
-            controller: 'HomeCtrl'
+            controller: 'AuthCtrl'
         }).
         when('/me', {
             templateUrl: 'partials/me.html',
@@ -28,12 +29,23 @@ angular.module('ArtFitAngular', [
         when('/stats', {
             templateUrl: 'partials/stats.html',
             controller: 'StatsCtrl'
+            
+        }).
+        when('/program', {
+            templateUrl: 'partials/program.html',
+            //controller: 'ProgrammDashboardController'
+            
+        }).
+        when('/program-details', {
+            templateUrl: 'partials/program-details.html',
+            //controller: 'ProgrammDashboardController'
+            
         }).
         otherwise({
             redirectTo: '/'
         });
 
-    $httpProvider.interceptors.push(['$q', '$location', '$window', function($q, $location, $window) {
+        $httpProvider.interceptors.push(['$q', '$location', '$window', function($q, $location, $window) {
             return {
                 'request': function (config) {
                     config.headers = config.headers || {};
@@ -55,4 +67,9 @@ angular.module('ArtFitAngular', [
         }]);
 
     }
-]);
+])
+.config(['$mdIconProvider', function( $mdIconProvider ){
+
+          // Register the user `avatar` icons
+          $mdIconProvider.icon("menu", "./img/menu.svg", 24);
+}]);

@@ -13,13 +13,11 @@ var express = require('express'),
 
   var mongoose   = require("mongoose");
   mongoose.connect("mongodb://mongodb:27017");
-
+  var User     = require('./models/User');
 
 //  app.use(bodyParser.json());
 
 app.get('/jawbone/sleepdata', ensureAuthorized, function(req, res) {
-
-    console.log(' Hit /jawbone/sleepdata');
 
     User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
         if (err) {
@@ -38,12 +36,145 @@ app.get('/jawbone/sleepdata', ensureAuthorized, function(req, res) {
                   if (err) {
                     console.log('Error receiving Jawbone UP data');
                   } else {
-                    res.json = JSON.parse(body).data;
+                    res.send(JSON.parse(body).data);
                   }
               });
           }
         }
       })
+});
+
+app.get('/jawbone/events/body', ensureAuthorized, function(req, res) {
+
+  User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
+      if (err) {
+          return done(err, null, console.log('Error with Mongo'));
+      } else {
+          console.log('DEBUG: ', usertracker.trackers[0].oauthtoken);
+
+          if (usertracker) {
+              var options = {
+                  access_token: usertracker.trackers[0].oauthtoken,
+                  client_id: jawboneAuth.clientID,
+                  client_secret: jawboneAuth.clientSecret
+              };
+
+              res.setHeader('Content-Type', 'application/json');
+
+              up = require('jawbone-up')(options);
+
+              up.events.body.get({}, function(err, bodydata) {
+                  if (err) {
+                      console.log('Error receiving Jawbone UP data');
+                  } else {  
+                      res.send(JSON.parse(bodydata).data); 
+                  }
+              });
+          }
+      }
+  })
+});
+
+app.get('/jawbone/workouts', ensureAuthorized, function(req, res) {
+
+  User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
+      if (err) {
+          return done(err, null, console.log('Error with Mongo'));
+      } else {
+          console.log('DEBUG: ', usertracker.trackers[0].oauthtoken);
+
+          if (usertracker) {
+              var options = {
+                  access_token: usertracker.trackers[0].oauthtoken,
+                  client_id: jawboneAuth.clientID,
+                  client_secret: jawboneAuth.clientSecret
+              };
+
+              res.setHeader('Content-Type', 'application/json');
+
+              up = require('jawbone-up')(options);
+
+              up.workouts.get({}, function(err, bodydata) {
+                  if (err) {
+                      console.log('Error receiving Jawbone UP data');
+                  } else {  
+                      res.send(JSON.parse(bodydata).data); 
+                  }
+              });
+          }
+      }
+  })
+});
+
+app.get('/jawbone/moves', ensureAuthorized, function(req, res) {
+
+  User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
+      if (err) {
+          return done(err, null, console.log('Error with Mongo'));
+      } else {
+          console.log('DEBUG: ', usertracker.trackers[0].oauthtoken);
+
+          if (usertracker) {
+              var options = {
+                  access_token: usertracker.trackers[0].oauthtoken,
+                  client_id: jawboneAuth.clientID,
+                  client_secret: jawboneAuth.clientSecret
+              };
+
+              res.setHeader('Content-Type', 'application/json');
+
+              up = require('jawbone-up')(options);
+
+              //check to see what do we have in the Store
+
+              up.moves.get({}, function(err, bodydata) {
+                  if (err) {
+                      console.log('Error receiving Jawbone UP data');
+                  } else {  
+                      res.send(JSON.parse(bodydata).data); 
+                  }
+              });
+          }
+      }
+  })
+});
+
+app.get('/jawbone/update', ensureAuthorized, function(req, res) {
+  User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
+      if (err) {
+          return done(err, null, console.log('Error with Mongo'));
+      } else {
+          console.log('DEBUG: ', usertracker.trackers[0].oauthtoken);
+
+          if (usertracker) {
+              var options = {
+                  access_token: usertracker.trackers[0].oauthtoken,
+                  client_id: jawboneAuth.clientID,
+                  client_secret: jawboneAuth.clientSecret
+              };
+
+              res.setHeader('Content-Type', 'application/json');
+
+              up = require('jawbone-up')(options);
+
+              //check to see what do we have in the Store
+
+              up.moves.get({}, function(err, bodydata) {
+                  if (err) {
+                      console.log('Error receiving Jawbone UP data');
+                  } else {  
+                      // so here is we have data. Lets update Store
+                      var Jawbone     = require('./models/jawbone');
+                      var newJawbone = new Jawbone();
+                      newJawbone.tracker_id = usertracker.trackers[0]._id;
+                      newJawbone.updated_after = Date.now().getUnixTime();
+                      
+                  }
+              });
+          }
+      }
+  })
+
 });
 
 app.get('/', function(req, res) {
@@ -76,7 +207,10 @@ function ensureAuthorized(req, res, next) {
         next();
       }
     }
-    console.log ('User unauthorized')
-    res.send(403);
+    else
+    {
+      console.log ('User unauthorized', req.headers)
+      res.send(403);
+    }
     
 }

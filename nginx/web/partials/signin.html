@@ -1,30 +1,39 @@
-<div class="row">
-    <div class="col-lg-12">
-    <div class="panel panel-primary">
-            <div class="panel-heading">
-                <strong>Signin</strong>
+<form name="loginForm" ng-controller= "AuthCtrl" ng-submit="loginForm.$valid && signin()">
+
+<md-content layout="vertical" flex id="content" >
+  <div layout="row" layout-align="center center" layout-fill>
+    <md-whiteframe class="md-whiteframe-z1" layout="column" flex="30" layout-padding>
+        <md-content>
+          <md-input-container>
+            <label>Email</label>
+            <input ng-model="email" name="email" required>
+            <div ng-messages="loginForm.email.$error">
+              <div ng-message="required">Введите пожалуста email</div>
             </div>
-            <div class="panel-body">
-                <form class="form-horizontal" role="form" ng-submit="signin()">
-                    <div class="form-group">
-                        <label for="email" class="col-sm-2 control-label">Email</label>
-                        <div class="col-sm-10">
-                            <input type="email" class="form-control" id="email" placeholder="Email" ng-model="email">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="password" class="col-sm-2 control-label">Password</label>
-                        <div class="col-sm-10">
-                            <input type="password" class="form-control" id="password" placeholder="Password" ng-model="password">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" class="btn btn-default">Sign in</button>
-                        </div>
-                    </div>
-                </form>
+
+          </md-input-container>
+
+          <md-input-container md-is-error="loginForm.password.$invalid && (loginForm.$submitted || loginForm.password.$dirty)">
+            <label>Password</label>
+            <input ng-model="password" type="password" required name="password">
+            <div ng-messages="loginForm.password.$error">
+              <div ng-message="required">Введите пожалуста пароль</div>
             </div>
-        </div>
-    </div>
-</div>
+          </md-input-container>
+          <md-input-container layout-align="center center">
+            <div layout="row" layout-sm="column" layout-margin>
+              <md-button class="md-raised" flex="50" flex-sm="100"  type="submit" >Login</md-button>
+              <md-button class="md-raised md-primary" flex="50" flex-sm="100" href="#/signup">Register</md-button>
+            </div>
+          </md-input-container>
+          
+          <md-checkbox ng-model="remember" name="chkRemember">Запомнить</md-checkbox>          
+          <br>
+          <a href="#">Забыли пароль, восстановить?</a>
+          
+        </md-content>
+    </md-whiteframe>
+  </div>
+</md-content>
+
+</form>

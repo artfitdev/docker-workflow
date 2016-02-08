@@ -7,6 +7,7 @@ var mongoose   = require("mongoose");
 var app        = express();
 var fs = require('fs');
 
+var http = require('http');
 
 var port = 8082;
 var User     = require('./models/User');
@@ -59,7 +60,7 @@ app.post('/api/authenticate', function(req, res) {
 });
 
 
-app.post('/api/signin', function(req, res) {
+app.post('/api/signup', function(req, res) {
     console.log('New User email: ' + req.body.email);
     User.findOne({email: req.body.email, password: req.body.password}, 
         function(err, user) {
@@ -78,6 +79,7 @@ app.post('/api/signin', function(req, res) {
                 } else {
 
                     var userModel = new User();
+                    userModel.email = req.body.name;
                     userModel.email = req.body.email;
                     userModel.password = req.body.password;
                     userModel.token = jwt.sign({'email':req.body.email, 'password': req.body.password}, JWT_SECRET);
@@ -142,48 +144,33 @@ app.get('/api/jawbone', ensureAuthorized, function(req, res) {
     });
 });
 
-app.get('/api/jawbone/data', ensureAuthorized, function(req, res) {
+//Temp: Lets hit Jawbone service sleepdata for now
+var jawboneAuth = {
+   clientID: 'PO1vlJWHWPI',
+   clientSecret: 'd9650ce5b08152caac453065d3ad7751b4ecae09',
+   authorizationURL: 'https://jawbone.com/auth/oauth2/auth',
+   tokenURL: 'https://jawbone.com/auth/oauth2/token',
+   callbackURL: 'http://www.fotolite.net/jawbone/oauth/callback'
+};
+
+app.get('/api/jawbone/data/sleep', ensureAuthorized, function(req, res) {
     //this is where we need to get generic health data from our DB's
+    getJawboneData(req, res, '/jawbone/sleepdata');
+});
 
-    
+app.get('/api/jawbone/data/events/body', ensureAuthorized, function(req, res) {
+    //this is where we need to get generic health data from our DB's
+    getJawboneData(req, res, '/jawbone/events/body');
+});
 
-    //Temp: Lets hit Jawbone service sleepdata for now
-    var jawboneAuth = {
-       clientID: 'PO1vlJWHWPI',
-       clientSecret: 'd9650ce5b08152caac453065d3ad7751b4ecae09',
-       authorizationURL: 'https://jawbone.com/auth/oauth2/auth',
-       tokenURL: 'https://jawbone.com/auth/oauth2/token',
-       callbackURL: 'http://www.fotolite.net/jawbone/oauth/callback'
-    };
+app.get('/api/jawbone/data/workouts', ensureAuthorized, function(req, res) {
+    //this is where we need to get generic health data from our DB's
+    getJawboneData(req, res, '/jawbone/workouts');
+});
 
-    User.findOne({token: req.token, 'trackers.type': 'jawbone'}, function(err, usertracker){
-        if (err) {
-            return done(err, null, console.log('Error with Mongo'));
-        } else {
-          console.log('DEBUG: ', usertracker.trackers[0].oauthtoken)
-          if (usertracker) {
-              var options = {
-                access_token: usertracker.trackers[0].oauthtoken,
-                client_id: jawboneAuth.clientID,
-                client_secret: jawboneAuth.clientSecret
-              },
-              up = require('jawbone-up')(options);
-              up.sleeps.get({}, function(err, body) {
-                  if (err) {
-                    console.log('Error receiving Jawbone UP data');
-                  } else {                        
-                        res.setHeader('Content-Type', 'application/json');
-
-                        res.send(JSON.parse(body).data);
-                        console.log ('Getting sleep data');
-                        
-                  }
-              });
-          }
-        }
-      })
-
-
+app.get('/api/jawbone/data/moves', ensureAuthorized, function(req, res) {
+    //this is where we need to get generic health data from our DB's
+    getJawboneData(req, res, '/jawbone/moves');
 });
 
 function ensureAuthorized(req, res, next) {
@@ -198,6 +185,29 @@ function ensureAuthorized(req, res, next) {
     } else {
         res.send(403);
     }
+}
+
+function getJawboneData (req, res, path) {
+
+    http.get({
+        host: 'jawbonenode1',
+        port: 8083,
+        path: path,
+        headers: {
+            'authorization': 'Bearer ' + req.token
+        }
+    }, function(response) {
+        // Continuously update stream with data
+        var body = '';
+        response.on('data', function(d) {
+            body += d;
+        });
+        response.on('end', function() {
+
+            // Data reception is done, do whatever with it!
+            res.send( body);
+        });
+    });
 }
 
 process.on('uncaughtException', function(err) {
